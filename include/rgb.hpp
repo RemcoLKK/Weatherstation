@@ -3,13 +3,20 @@
 
 #include <Adafruit_NeoPixel.h>
 
-#define PIN         48
-#define NUMPIXELS   1
-#define FADE_DELAY  10   // ms between color-steps; lower = faster
-#define LED_BRIGHTNESS 15  // 0 = off, 255 = full
+#define PIN             38
+#define NUMPIXELS       1
+#define LED_BRIGHTNESS  15  // 0..255
 
+// --- Net status LED API ---
+enum NetLedMode : uint8_t { LED_OFF, WIFI_CONNECTING, MQTT_CONNECTING, ONLINE };
+
+// Call once in setup
 void rgbSetup();
-void rgbWheel();
-void rgbTask(void* pvParameters);
+
+// Call often (loop / timer) to animate
+void netLedUpdate();
+
+// Set the current mode (red flicker, blue flicker, solid green, off)
+void setNetLed(NetLedMode m);
 
 #endif

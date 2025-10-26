@@ -7,7 +7,7 @@ void windSetup(){
   
 }
 
-int getWindSpeed() {
+float getWindSpeed() {
   int windSpeedValue = analogRead(WINDSPEED_PIN);
   int kmhWindSpeed = (windSpeedValue / 40);
   if (windSpeedValue > 30){

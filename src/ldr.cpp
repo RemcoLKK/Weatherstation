@@ -20,11 +20,18 @@ int getMostSun() {
     return maxIndex; // 0 = NORTH, 1 = EAST, 2 = SOUTH, 3 = WEST
 }
 
+// int getMostSun() {
+
+//     int bruh = analogRead(LDRN_PIN), // NORTH
+//     return bruh; // 0 = NORTH, 1 = EAST, 2 = SOUTH, 3 = WEST
+// }
+
+// for debugging
 void printMostSun() {
   display.clearDisplay(); 
   display.setCursor(0, 0);
   display.print(F("Most sun is: "));   
-  display.println(getMostSun());
+  display.println(analogRead(LDRN_PIN));
   display.display();
   delay(100);
 }

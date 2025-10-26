@@ -3,7 +3,7 @@
 
 #define WINDSPEED_PIN 5
 
-int getWindSpeed();
+float getWindSpeed();
 void printWindSpeed();
 void windSetup();
 
