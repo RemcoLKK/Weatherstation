@@ -18,15 +18,13 @@ const unsigned long debounceDelay = 150; // ms
 
 void setup() {
   Serial.begin(115200);
-  
-  pinMode(WINDSPEED_PIN, INPUT);
+  Serial.setTxBufferSize(4096);
   pinMode(UV_PIN, INPUT);
   pinMode(BTN_NEXT, INPUT);
   pinMode(BTN_PREV, INPUT);
-
+  LDRSetup();
   windSetup(); // rewrite to hall sensor
   // servoSetup();
-  rgbSetup();
   oLedSetup();
   bme680Setup();
   rgbSetup();                 // LED ready
@@ -36,46 +34,47 @@ void setup() {
 }
 
 void loop() {
+  updateLDRs(); 
   // rotateServo();
   ensureConnected();
   mqttPublish();
-  // if (millis() - lastDebounce > debounceDelay) {
-  //   if (digitalRead(BTN_NEXT) == HIGH) {
-  //     currentScreen++;
-  //     if (currentScreen >= totalScreens) currentScreen = 0;
-  //     lastDebounce = millis();
-  //   }
-  //   if (digitalRead(BTN_PREV) == HIGH) {
-  //     currentScreen--;
-  //     if (currentScreen < 0) currentScreen = totalScreens - 1;
-  //     lastDebounce = millis();
-  //   }
-  // }
+//   if (millis() - lastDebounce > debounceDelay) {
+//     if (digitalRead(BTN_NEXT) == HIGH) {
+//       currentScreen++;
+//       if (currentScreen >= totalScreens) currentScreen = 0;
+//       lastDebounce = millis();
+//     }
+//     if (digitalRead(BTN_PREV) == HIGH) {
+//       currentScreen--;
+//       if (currentScreen < 0) currentScreen = totalScreens - 1;
+//       lastDebounce = millis();
+//     }
+//   }
 
-switch (currentScreen) {
-    case 0:
-      printUVLevel();
-      break;
-    case 1:
-      printWindSpeed();
-      break;
-    case 2:
-      printMostSun();
-      break; 
-    case 3:
-      printTemperature();
-      break;
-    case 4:
-      printPressure();
-      break;
-    case 5:
-      printHumidity();
-      break;
-    case 6:
-      printGasResistance();
-      break;
-    case 7:
-      printAltitude();
-      break;
-  }
+// switch (currentScreen) {
+//     case 0:
+//       printUVLevel();
+//       break;
+//     case 1:
+//       printWindSpeed();
+//       break;
+//     case 2:
+//       printMostSun();
+//       break; 
+//     case 3:
+//       printTemperature();
+//       break;
+//     case 4:
+//       printPressure();
+//       break;
+//     case 5:
+//       printHumidity();
+//       break;
+//     case 6:
+//       printGasResistance();
+//       break;
+//     case 7:
+//       printAltitude();
+//       break;
+//   }
 }

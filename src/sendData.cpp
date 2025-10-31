@@ -50,6 +50,7 @@ void connectMQTT() {
   if (ok) {
     Serial.println("MQTT: connected");
     setNetLed(ONLINE);                   // both should be up now
+    mqtt.publish(MQTT_GPS, "52.669483, 5.624467"); // publish static GPS coords once
   } else {
     Serial.printf("MQTT: connect failed, rc=%d\n", mqtt.state());
     // leave it in MQTT_CONNECTING; ensureConnected() will retry
