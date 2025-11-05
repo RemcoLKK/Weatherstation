@@ -5,6 +5,7 @@
 
 float getWindSpeed();
 void printWindSpeed();
+void printWindSpeedSerial();
 void windSetup();
 
 #endif // WIND_HPP

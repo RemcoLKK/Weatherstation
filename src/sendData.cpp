@@ -11,7 +11,7 @@ PubSubClient mqtt(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;;
-const unsigned long PUBLISH_PERIOD_MS = 5000;
+const unsigned long PUBLISH_PERIOD_MS = 3000;
 unsigned long nextPublish = 0;
 
 void connectWiFi() {
@@ -74,7 +74,7 @@ void publishAll() {
     dtostrf(value, 0, 2, payload);  // float → string conversion
     mqtt.publish(topic, payload);
     Serial.printf("→ %s: %s\n", topic, payload);
-    delay(10); // short delay for broker
+    // delay(10); // short delay for broker
   };
 
   auto sendInt = [&](const char* topic, int value) {
@@ -82,7 +82,7 @@ void publishAll() {
     snprintf(payload, sizeof(payload), "%d", value);  // int → string conversion
     mqtt.publish(topic, payload);
     Serial.printf("→ %s: %s\n", topic, payload);
-    delay(10); // short delay for broker
+    // delay(10); // short delay for broker
   };
 
   send(MQTT_TEMPERATURE,  getTemperature());

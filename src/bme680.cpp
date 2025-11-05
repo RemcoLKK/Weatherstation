@@ -167,7 +167,7 @@ float getTemperature() {
     Serial.println(F("Failed to perform reading :("));
     return -999;
   }
-  return bme.temperature - 1;
+  return bme.temperature - 4;
 }
 
 float getPressure() {
@@ -199,7 +199,7 @@ float getAltitude() {
     Serial.println(F("Failed to perform reading :("));
     return -999;
   }
-  return bme.readAltitude(SEALEVELPRESSURE_HPA) - 134; // -107 to calibrate to local altitude
+  return bme.readAltitude(SEALEVELPRESSURE_HPA) - 107; // -107 to calibrate to local altitude
 }
 
 void printTemperature() {
@@ -207,7 +207,7 @@ void printTemperature() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(F("Temp: "));
-  display.print(bme.temperature - 1);
+  display.print(getTemperature());
   display.println(F(" *C"));
   display.display();
   delay(100);
@@ -251,7 +251,7 @@ void printAltitude() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(F("Altitude: "));
-  display.print(bme.readAltitude(SEALEVELPRESSURE_HPA) - 107); // -107 to calibrate to local altitude
+  display.print(getAltitude()); // -107 to calibrate to local altitude
   display.println(F(" m"));
   display.display();
   delay(100);
