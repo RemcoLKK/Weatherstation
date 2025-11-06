@@ -11,7 +11,7 @@ PubSubClient mqtt(espClient);
 long lastMsg = 0;
 char msg[50];
 int value = 0;;
-const unsigned long PUBLISH_PERIOD_MS = 3000;
+const unsigned long PUBLISH_PERIOD_MS = 5000;
 unsigned long nextPublish = 0;
 
 void connectWiFi() {
@@ -92,6 +92,8 @@ void publishAll() {
   send(MQTT_ALTITUDE,     getAltitude());
   send(MQTT_WINDSPEED,    getWindSpeed());
   sendInt(MQTT_UV,        getUVLevel());
+  send(MQTT_LIGHT,        getMostSunLux());
+  sendInt(MQTT_UPDATE,    1);
 
   Serial.println("MQTT: all sensor values published\n");
 }

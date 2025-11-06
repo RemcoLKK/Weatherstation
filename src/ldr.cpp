@@ -14,6 +14,16 @@ static int lastWinner = -1;
 static const float HYST_ABS = 60.0f;     // ~60 ADC counts absolute
 static const float HYST_PCT = 0.05f;     // or 5% of current max
 
+static const float R_FIXED   = 10000.0f;   // 10k series resistor
+static const int   ADC_MAX   = 4095;       // 12-bit ADC on ESP32
+
+// GL5528 typical values
+static const float GAMMA     = 0.7f;       // slope from datasheet
+static const float RL10      = 15000.0f;   // ~15k at 10 lux (typical)
+
+// K = RL10 * 10^GAMMA  (precomputed: 10^0.7 ≈ 5.01)
+static const float LDR_K     = RL10 * 5.01f;   // ≈ 75kΩ
+
 void LDRSetup() {
   for (int i = 0; i < 4; ++i) {
     pinMode(LDR_PINS[i], INPUT);
@@ -61,6 +71,36 @@ int getMostSun() {
 
   if (delta > thresh) lastWinner = maxIdx; // switch only if meaningfully brighter
   return lastWinner;                        // 0=N, 1=E, 2=S, 3=W
+}
+
+static float adcToLux(float adc)
+{
+  if (adc <= 1.0f)         adc = 1.0f;             // avoid div/0
+  if (adc >= ADC_MAX - 1)  adc = ADC_MAX - 1.0f;   // avoid infinity
+
+  // ADC → resistance of LDR
+  // R_LDR = R_FIXED * (ADC_MAX / adc - 1)
+  float rLdr = R_FIXED * ( (float)ADC_MAX / adc - 1.0f );
+
+  // resistance → lux, using power law
+  float lux = powf(LDR_K / rLdr, 1.0f / GAMMA);
+  if (!isfinite(lux) || lux < 0.0f) lux = 0.0f;
+  return lux;
+}
+
+// return the actual ADC pin of the LDR with the most sun
+int getMostSunPin() {
+  int idx = getMostSun();      // 0=N,1=E,2=S,3=W
+  return LDR_PINS[idx];
+}
+
+// get estimated lux using the LDR that currently has the most sun
+float getMostSunLux() {
+  if (!ldrInitDone) return 0.0f;
+
+  int idx = getMostSun();       
+  float adcAvg = ldrAvg[idx];    // use smoothed value
+  return adcToLux(adcAvg);
 }
 
 // --- debugging/visualization ---

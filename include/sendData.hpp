@@ -21,6 +21,8 @@
 #define MQTT_WINDSPEED      "homestations/1029441/0/windspeed"
 #define MQTT_UV             "homestations/1029441/0/uv"
 #define MQTT_GPS            "homestations/1029441/0/gps"
+#define MQTT_LIGHT       "homestations/1029441/0/light"
+#define MQTT_UPDATE         "homestations/1029441/0/update"
 
 #define MQTT_USERNAME       "minor_smart_things"
 #define MQTT_PASSWORD       "smart_things_2025"
