@@ -116,6 +116,11 @@ void printLDRValues(){
 }
 
 void printMostSun() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+  
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(F("Most sun: "));

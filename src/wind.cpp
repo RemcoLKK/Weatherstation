@@ -80,6 +80,11 @@ void printWindSpeedSerial() {
 
 
 void printWindSpeed() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+  
   float kmh = getWindSpeed();
   float ms  = kmh / 3.6f;
 

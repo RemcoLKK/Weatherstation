@@ -5,6 +5,7 @@
 #include <ldr.hpp>
 #include <sendData.hpp>
 #include <bme680.hpp>
+#include <dht11.hpp>
 #include <servo.hpp>
 #include <rgb.hpp>
 
@@ -13,13 +14,54 @@
 
 int currentScreen = 0;
 const int totalScreens = 8;
-unsigned long lastDebounce = 0;
-const unsigned long debounceDelay = 150; // ms
+const unsigned long debounceDelay = 80; // ms
+bool lastNextState = LOW;  
+bool lastPrevState = LOW;
+unsigned long lastNextDebounce = 0;
+unsigned long lastPrevDebounce = 0;
+bool nextHandled = false;
+bool prevHandled = false;
+
+void handleButtons() {
+  unsigned long now = millis();
+
+  // --- NEXT button ---
+  bool nextReading = digitalRead(BTN_NEXT);
+  if (nextReading != lastNextState) {
+    lastNextDebounce = now;
+    lastNextState = nextReading;
+  }
+  if ((now - lastNextDebounce) > debounceDelay && nextReading == HIGH) {
+    if (!nextHandled) {
+      currentScreen++;
+      if (currentScreen >= totalScreens) currentScreen = 0;
+      nextHandled = true;
+    }
+  } else if (nextReading == LOW) {
+    nextHandled = false;  // reset when released
+  }
+
+  // --- PREV button ---
+  bool prevReading = digitalRead(BTN_PREV);
+  if (prevReading != lastPrevState) {
+    lastPrevDebounce = now;
+    lastPrevState = prevReading;
+  }
+  if ((now - lastPrevDebounce) > debounceDelay && prevReading == HIGH) {
+    if (!prevHandled) {
+      currentScreen--;
+      if (currentScreen < 0) currentScreen = totalScreens - 1;
+      prevHandled = true;
+    }
+  } else if (prevReading == LOW) {
+    prevHandled = false;
+  }
+}
 
 void setup() {
   Serial.begin(115200);
   Serial.setTxBufferSize(4096);
-  pinMode(UV_PIN, INPUT);
+  pinMode(UV_PIN, INPUT_PULLDOWN);
   pinMode(BTN_NEXT, INPUT);
   pinMode(BTN_PREV, INPUT);
   LDRSetup();
@@ -38,44 +80,16 @@ void loop() {
   rotateServo();
   ensureConnected();
   mqttPublish();
-  if (millis() - lastDebounce > debounceDelay) {
-    if (digitalRead(BTN_NEXT) == HIGH) {
-      currentScreen++;
-      if (currentScreen >= totalScreens) currentScreen = 0;
-      lastDebounce = millis();
-    }
-    if (digitalRead(BTN_PREV) == HIGH) {
-      currentScreen--;
-      if (currentScreen < 0) currentScreen = totalScreens - 1;
-      lastDebounce = millis();
-    }
-  }
+  handleButtons();
 
 switch (currentScreen) {
-    case 0:
-      printWindSpeedSerial();
-      printWindSpeed();
-      break;
-    case 1:
-      printUVLevel();
-      break;
-    case 2:
-      printMostSun();
-      break; 
-    case 3:
-      printTemperature();
-      break;
-    case 4:
-      printPressure();
-      break;
-    case 5:
-      printHumidity();
-      break;
-    case 6:
-      printGasResistance();
-      break;
-    case 7:
-      printAltitude();
-      break;
+    case 0: printUVLevel();           break;
+    case 1: printWindSpeed();         break;
+    case 2: printMostSun();           break; 
+    case 3: printTemperatureDHT11();  break;
+    case 4: printPressure();          break;
+    case 5: printHumidity();          break;
+    case 6: printGasResistance();     break;
+    case 7: printAltitude();          break;
   }
 }

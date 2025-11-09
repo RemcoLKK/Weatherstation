@@ -203,6 +203,11 @@ float getAltitude() {
 }
 
 void printTemperature() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -210,10 +215,14 @@ void printTemperature() {
   display.print(getTemperature());
   display.println(F(" *C"));
   display.display();
-  delay(100);
 }
 
 void printPressure() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -221,10 +230,14 @@ void printPressure() {
   display.print(bme.pressure / 100.0);
   display.println(F(" hPa"));
   display.display();
-  delay(100);
 }
 
 void printHumidity() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -232,10 +245,14 @@ void printHumidity() {
   display.print(bme.humidity);
   display.println(F(" %"));
   display.display();
-  delay(100);
 }
 
 void printGasResistance() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+  
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -243,10 +260,14 @@ void printGasResistance() {
   display.print(bme.gas_resistance / 1000.0);
   display.println(F(" KOhms"));
   display.display();
-  delay(100);
 }
 
 void printAltitude() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+  
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
@@ -254,5 +275,4 @@ void printAltitude() {
   display.print(getAltitude()); // -107 to calibrate to local altitude
   display.println(F(" m"));
   display.display();
-  delay(100);
 }

@@ -5,10 +5,10 @@
 #include <PubSubClient.h>
 
 // WiFi credentials
-// #define WIFI_SSID           "Remco's netwerk 2,4G"
-// #define WIFI_PASSWORD       "Bananenplant10"
-#define WIFI_SSID           "Remco's S23"
-#define WIFI_PASSWORD       "Wachtwoord"
+#define WIFI_SSID           "Remco's netwerk 2,4G"
+#define WIFI_PASSWORD       "Bananenplant10"
+// #define WIFI_SSID           "Remco's S23"
+// #define WIFI_PASSWORD       "Wachtwoord"
 
 // MQTT settings
 #define MQTT_BROKER         "145.24.237.211"
@@ -21,7 +21,7 @@
 #define MQTT_WINDSPEED      "homestations/1029441/0/windspeed"
 #define MQTT_UV             "homestations/1029441/0/uv"
 #define MQTT_GPS            "homestations/1029441/0/gps"
-#define MQTT_LIGHT       "homestations/1029441/0/light"
+#define MQTT_LIGHT          "homestations/1029441/0/light"
 #define MQTT_UPDATE         "homestations/1029441/0/update"
 
 #define MQTT_USERNAME       "minor_smart_things"
