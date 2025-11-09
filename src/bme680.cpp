@@ -137,7 +137,7 @@ void printPressure() {
   display.setCursor(0, 0);
   display.println(F("Pressure: "));
   display.println(bme.pressure / 100.0);
-  display.println(F(" hPa"));
+  display.println(F("hPa"));
   display.display();
 }
 
@@ -167,7 +167,7 @@ void printGasResistance() {
   display.setCursor(0, 0);
   display.println(F("Gas: "));
   display.println(bme.gas_resistance / 1000.0);
-  display.println(F(" KOhms"));
+  display.println(F("KOhms"));
   display.display();
 }
 
