@@ -90,7 +90,7 @@ float getAltitude() {
     Serial.println(F("Failed to perform reading :("));
     return -999;
   }
-  return bme.readAltitude(SEALEVELPRESSURE_HPA) + 137; // -107 to calibrate to local altitude
+  return bme.readAltitude(SEALEVELPRESSURE_HPA) + 37;
 }
 
 void printTemperature() {

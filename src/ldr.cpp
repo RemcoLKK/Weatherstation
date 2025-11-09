@@ -103,6 +103,14 @@ float getMostSunLux() {
   return adcToLux(adcAvg);
 }
 
+const char* getLdrNameFromPin(int pin) {
+  if (pin == LDRN_PIN) return "North";
+  if (pin == LDRE_PIN) return "East";
+  if (pin == LDRS_PIN) return "South";
+  if (pin == LDRW_PIN) return "West";
+  return "Unknown";
+}
+
 // --- debugging/visualization ---
 void printLDRValues(){
   display.clearDisplay();
@@ -124,6 +132,6 @@ void printMostSun() {
   display.clearDisplay();
   display.setCursor(0, 0);
   display.print(F("Most sun: "));
-  display.println(getMostSun());
+  display.println(getLdrNameFromPin(getMostSunPin()));
   display.display();
 }

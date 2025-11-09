@@ -32,9 +32,9 @@ void servoSetup() {
 
 void rotateServo() {
     // timing constants
-    static const uint32_t RECHECK_INTERVAL_MS = 10000; // 10 s between full checks
+    static const uint32_t RECHECK_INTERVAL_MS = 20000; // 10 s between full checks
     static const uint32_t SERVO_SETTLE_MS     = 250;   // time to reach 90°
-    static const uint32_t SHADOW_WAIT_MS      = 1000;  // wait after lifting panel
+    static const uint32_t SHADOW_WAIT_MS      = 2000;  // wait after lifting panel
 
     // internal state tracking
     // 0 = idle, waiting for next check
