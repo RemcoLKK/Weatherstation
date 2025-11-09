@@ -35,7 +35,7 @@ void printUVLevel() {
   display.clearDisplay(); 
   display.setCursor(0, 0);
   display.print(F("UV Level: "));   
-  display.println(analogRead(UV_PIN));
+  display.println(getUVLevel());
   display.display();
   delay(100);
 }

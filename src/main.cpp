@@ -14,49 +14,53 @@
 
 int currentScreen = 0;
 const int totalScreens = 8;
-const unsigned long debounceDelay = 80; // ms
-bool lastNextState = LOW;  
-bool lastPrevState = LOW;
-unsigned long lastNextDebounce = 0;
-unsigned long lastPrevDebounce = 0;
-bool nextHandled = false;
-bool prevHandled = false;
+
+// --- button flags set from interrupts ---
+volatile bool nextPressedFlag = false;
+volatile bool prevPressedFlag = false;
+
+void IRAM_ATTR onNextPress() {
+  nextPressedFlag = true;   // just set a flag, keep ISR tiny
+}
+
+void IRAM_ATTR onPrevPress() {
+  prevPressedFlag = true;
+}
 
 void handleButtons() {
-  unsigned long now = millis();
+  static uint32_t lastNextHandled = 0;
+  static uint32_t lastPrevHandled = 0;
+  uint32_t now = millis();
 
   // --- NEXT button ---
-  bool nextReading = digitalRead(BTN_NEXT);
-  if (nextReading != lastNextState) {
-    lastNextDebounce = now;
-    lastNextState = nextReading;
-  }
-  if ((now - lastNextDebounce) > debounceDelay && nextReading == HIGH) {
-    if (!nextHandled) {
+  if (nextPressedFlag) {
+    noInterrupts();
+    bool pressed = nextPressedFlag;
+    nextPressedFlag = false;   // clear the flag
+    interrupts();
+
+    if (pressed && (now - lastNextHandled) > 120) {  // 120 ms debounce
+      lastNextHandled = now;
       currentScreen++;
       if (currentScreen >= totalScreens) currentScreen = 0;
-      nextHandled = true;
     }
-  } else if (nextReading == LOW) {
-    nextHandled = false;  // reset when released
   }
 
   // --- PREV button ---
-  bool prevReading = digitalRead(BTN_PREV);
-  if (prevReading != lastPrevState) {
-    lastPrevDebounce = now;
-    lastPrevState = prevReading;
-  }
-  if ((now - lastPrevDebounce) > debounceDelay && prevReading == HIGH) {
-    if (!prevHandled) {
+  if (prevPressedFlag) {
+    noInterrupts();
+    bool pressed = prevPressedFlag;
+    prevPressedFlag = false;
+    interrupts();
+
+    if (pressed && (now - lastPrevHandled) > 120) {
+      lastPrevHandled = now;
       currentScreen--;
       if (currentScreen < 0) currentScreen = totalScreens - 1;
-      prevHandled = true;
     }
-  } else if (prevReading == LOW) {
-    prevHandled = false;
   }
 }
+
 
 void setup() {
   Serial.begin(115200);
@@ -64,6 +68,8 @@ void setup() {
   pinMode(UV_PIN, INPUT_PULLDOWN);
   pinMode(BTN_NEXT, INPUT);
   pinMode(BTN_PREV, INPUT);
+  attachInterrupt(digitalPinToInterrupt(BTN_NEXT), onNextPress, RISING);
+  attachInterrupt(digitalPinToInterrupt(BTN_PREV), onPrevPress, RISING);
   LDRSetup();
   windSetup(); // rewrite to hall sensor
   servoSetup();
@@ -83,13 +89,13 @@ void loop() {
   handleButtons();
 
 switch (currentScreen) {
-    case 0: printUVLevel();           break;
-    case 1: printWindSpeed();         break;
-    case 2: printMostSun();           break; 
-    case 3: printTemperatureDHT11();  break;
-    case 4: printPressure();          break;
-    case 5: printHumidity();          break;
-    case 6: printGasResistance();     break;
-    case 7: printAltitude();          break;
+    case 0: printUVLevel();               break;
+    case 1: printWindSpeed();             break;
+    case 2: printMostSun();               break; 
+    case 3: printTemperatureCombined();   break;
+    case 4: printPressure();              break;
+    case 5: printHumidity();              break;
+    case 6: printGasResistance();         break;
+    case 7: printAltitude();              break;
   }
 }

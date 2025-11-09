@@ -7,5 +7,6 @@
 #define DHTTYPE DHT11
 
 void printTemperatureDHT11();
+float getTemperatureDHT11();
 
 #endif // DHT11_HPP

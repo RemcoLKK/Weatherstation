@@ -5,6 +5,7 @@
 #include <ldr.hpp>
 #include <bme680.hpp>
 #include <rgb.hpp>
+#include <dht11.hpp>
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -85,7 +86,7 @@ void publishAll() {
     // delay(10); // short delay for broker
   };
 
-  send(MQTT_TEMPERATURE,  getTemperature());
+  send(MQTT_TEMPERATURE,  (getTemperature() + getTemperatureDHT11()) / 2);
   send(MQTT_HUMIDITY,     getHumidity());
   send(MQTT_PRESSURE,     getPressure());
   send(MQTT_GAS,          getGasResistance());

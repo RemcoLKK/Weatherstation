@@ -1,6 +1,7 @@
 #include "bme680.hpp"
 #include <oLed.hpp>
- 
+#include <dht11.hpp>
+
 Adafruit_BME680 bme;
 
 void bme680Setup() {
@@ -52,116 +53,6 @@ void debugI2CScan() {
   delay(500);
 }
 
-static void i2cBusStatus(int SDA, int SCL) {
-  pinMode(SDA, INPUT_PULLUP);
-  pinMode(SCL, INPUT_PULLUP);
-  delay(2);
-  int sda = digitalRead(SDA);
-  int scl = digitalRead(SCL);
-  Serial.printf("   Lines: SDA=%s SCL=%s (with INPUT_PULLUP)\n",
-                sda ? "HIGH" : "LOW", scl ? "HIGH" : "LOW");
-  if (!sda || !scl) {
-    Serial.println("   ⚠️ One or both lines LOW. Check pull-ups/shorts/device holding line.");
-  }
-}
-
-// ---- Try to recover a stuck bus by clocking SCL and issuing a STOP ----
-// Call ONLY when SDA reads LOW (device may be mid-byte).
-static void i2cRecover(int SDA, int SCL) {
-  Serial.println("   Attempting I2C bus recovery…");
-  pinMode(SDA, INPUT_PULLUP);
-  pinMode(SCL, INPUT_PULLUP);
-  delay(2);
-
-  if (digitalRead(SDA) == LOW) {
-    // Use open-drain style toggling on SCL, gently clock up to 9 pulses
-    pinMode(SCL, OUTPUT_OPEN_DRAIN);
-    digitalWrite(SCL, HIGH); // release
-    for (int i = 0; i < 9 && digitalRead(SDA) == LOW; i++) {
-      digitalWrite(SCL, LOW);  delayMicroseconds(5);
-      digitalWrite(SCL, HIGH); delayMicroseconds(5);
-    }
-    // Issue a STOP: SDA low -> SCL high -> release SDA high
-    pinMode(SDA, OUTPUT_OPEN_DRAIN);
-    digitalWrite(SDA, LOW);    delayMicroseconds(5);
-    digitalWrite(SCL, HIGH);   delayMicroseconds(5);
-    digitalWrite(SDA, HIGH);   delayMicroseconds(5);
-  }
-
-  // Return to input-pullups for a sanity check
-  pinMode(SDA, INPUT_PULLUP);
-  pinMode(SCL, INPUT_PULLUP);
-  delay(2);
-  Serial.printf("   After recovery: SDA=%s SCL=%s\n",
-                digitalRead(SDA) ? "HIGH" : "LOW",
-                digitalRead(SCL) ? "HIGH" : "LOW");
-}
-
-// ---- Classic scanner on a given pin pair and frequency ----
-static int i2cScanOnce(int SDA, int SCL, uint32_t hz) {
-  int found = 0;
-  Wire.end(); // ensure clean state
-  Wire.begin(SDA, SCL, hz);
-  delay(20);
-
-  Serial.printf("🔍 Scanning on SDA=%d SCL=%d @ %lu Hz\n", SDA, SCL, (unsigned long)hz);
-  i2cBusStatus(SDA, SCL);
-
-  for (uint8_t addr = 1; addr < 127; addr++) {
-    Wire.beginTransmission(addr);
-    uint8_t err = Wire.endTransmission();
-    if (err == 0) {
-      Serial.printf("   ✅ Device @ 0x%02X\n", addr);
-      found++;
-    } else if (err == 4) {
-      Serial.printf("   ⚠️ Unknown error @ 0x%02X\n", addr);
-    }
-  }
-  if (found == 0) Serial.println("   ❌ No devices on this pin/speed combo.");
-  Serial.println("--------------------------------------------------");
-  return found;
-}
-
-// ---- Try multiple common pin pairs and speeds on ESP32/S3 ----
-// Adjust the pin pairs to match your wiring if needed.
-void i2cAutoDiagnose() {
-  Serial.println("\n=== I2C Auto-Diagnose ===");
-
-  // Common SDA/SCL pairs people use on ESP32/ESP32-S3 devkits.
-  // Edit this list to include your wiring first to save time.
-  const int PIN_PAIRS[][2] = {
-    {21, 22},   // classic ESP32 default
-    {9, 8},     // popular on many S3 devkits (SDA=9, SCL=8)
-    {7, 6},     // also seen on S3 builds
-    {11, 12},   // alternative
-    {5, 4},     // spare GPIOs often free
-  };
-  const uint32_t SPEEDS[] = {100000, 400000}; // 100 kHz, 400 kHz
-
-  for (auto &pair : PIN_PAIRS) {
-    int SDA = pair[0], SCL = pair[1];
-
-    // Check line levels; if SDA is stuck LOW, try recovery
-    pinMode(SDA, INPUT_PULLUP);
-    pinMode(SCL, INPUT_PULLUP);
-    delay(2);
-    if (digitalRead(SDA) == LOW) {
-      i2cRecover(SDA, SCL);
-    }
-
-    for (uint32_t hz : SPEEDS) {
-      int devices = i2cScanOnce(SDA, SCL, hz);
-      if (devices > 0) {
-        Serial.printf("🎯 Success on SDA=%d SCL=%d @ %lu Hz\n", SDA, SCL, (unsigned long)hz);
-        Serial.println("Tip: Use these pins/speed in Wire.begin() for your project.\n");
-        return; // stop at first success
-      }
-    }
-  }
-
-  Serial.println("🚫 Still nothing found. See checklist below.\n");
-}
-
 float getTemperature() {
   if (!bme.performReading()) {
     Serial.println(F("Failed to perform reading :("));
@@ -199,7 +90,7 @@ float getAltitude() {
     Serial.println(F("Failed to perform reading :("));
     return -999;
   }
-  return bme.readAltitude(SEALEVELPRESSURE_HPA) - 107; // -107 to calibrate to local altitude
+  return bme.readAltitude(SEALEVELPRESSURE_HPA) + 137; // -107 to calibrate to local altitude
 }
 
 void printTemperature() {
@@ -217,6 +108,24 @@ void printTemperature() {
   display.display();
 }
 
+void printTemperatureCombined() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+
+  float bmeTemp = getTemperature();
+  float dhtTemp = getTemperatureDHT11();
+  float avgTemp = (bmeTemp + dhtTemp) / 2.0f;
+
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(F("Temp: "));
+  display.print(avgTemp);
+  display.println(F(" *C"));
+  display.display();
+}
+
 void printPressure() {
   static unsigned long lastUpdate = 0;
   unsigned long now = millis();
@@ -226,8 +135,8 @@ void printPressure() {
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.print(F("Pressure: "));
-  display.print(bme.pressure / 100.0);
+  display.println(F("Pressure: "));
+  display.println(bme.pressure / 100.0);
   display.println(F(" hPa"));
   display.display();
 }
@@ -256,8 +165,8 @@ void printGasResistance() {
   if (!bme.performReading()) return;
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.print(F("Gas: "));
-  display.print(bme.gas_resistance / 1000.0);
+  display.println(F("Gas: "));
+  display.println(bme.gas_resistance / 1000.0);
   display.println(F(" KOhms"));
   display.display();
 }

@@ -14,13 +14,15 @@ extern Adafruit_BME680 bme;
 
 void bme680Setup();
 void debugI2CScan();
-void i2cAutoDiagnose();
+
 float getTemperature();
 float getPressure();
 float getHumidity();
 float getGasResistance();
 float getAltitude();
+
 void printTemperature();
+void printTemperatureCombined();
 void printPressure();
 void printHumidity();
 void printGasResistance();
