@@ -74,7 +74,6 @@ void publishAll() {
     char payload[16];
     dtostrf(value, 0, 2, payload);  // float → string conversion
     mqtt.publish(topic, payload);
-    Serial.printf("→ %s: %s\n", topic, payload);
     // delay(10); // short delay for broker
   };
 
@@ -82,7 +81,6 @@ void publishAll() {
     char payload[16];
     snprintf(payload, sizeof(payload), "%d", value);  // int → string conversion
     mqtt.publish(topic, payload);
-    Serial.printf("→ %s: %s\n", topic, payload);
     // delay(10); // short delay for broker
   };
 
@@ -95,8 +93,6 @@ void publishAll() {
   sendInt(MQTT_UV,        getUVLevel());
   send(MQTT_LIGHT,        getMostSunLux());
   sendInt(MQTT_UPDATE,    1);
-
-  Serial.println("MQTT: all sensor values published\n");
 }
 
 void mqttPublish() {

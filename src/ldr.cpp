@@ -73,18 +73,25 @@ int getMostSun() {
   return lastWinner;                        // 0=N, 1=E, 2=S, 3=W
 }
 
-static float adcToLux(float adc)
-{
-  if (adc <= 1.0f)         adc = 1.0f;             // avoid div/0
-  if (adc >= ADC_MAX - 1)  adc = ADC_MAX - 1.0f;   // avoid infinity
-
-  // ADC → resistance of LDR
-  // R_LDR = R_FIXED * (ADC_MAX / adc - 1)
+static float adcToLux(float adc) {
+  float LUX_SCALE = 150.0f / 85.0f;  // ≈ 1.7647
+  if (adc <= 1.0f) {
+    adc = 1.0f;  
+  } else if (adc >= ADC_MAX - 1) {
+    adc = ADC_MAX - 1.0f;
+  } 
+  
   float rLdr = R_FIXED * ( (float)ADC_MAX / adc - 1.0f );
+  float lux  = powf(LDR_K / rLdr, 1.0f / GAMMA);
+  if (!isfinite(lux) || lux < 0.0f) {
+    lux = 0.0f;
+  }
+  else if (lux > 1100.0f){
+    lux = 1100.0f;  
+  }
 
-  // resistance → lux, using power law
-  float lux = powf(LDR_K / rLdr, 1.0f / GAMMA);
-  if (!isfinite(lux) || lux < 0.0f) lux = 0.0f;
+  // apply calibration factor
+  lux *= LUX_SCALE;
   return lux;
 }
 
@@ -135,3 +142,18 @@ void printMostSun() {
   display.println(getLdrNameFromPin(getMostSunPin()));
   display.display();
 }
+
+void printLux() {
+  static unsigned long lastUpdate = 0;
+  unsigned long now = millis();
+  if (now - lastUpdate < 100) return;
+  lastUpdate = now;
+  
+  display.clearDisplay();
+  display.setCursor(0, 0);
+  display.println(F("Light: "));
+  display.println(getMostSunLux());
+  display.print(F("lux"));
+  display.display();
+}
+

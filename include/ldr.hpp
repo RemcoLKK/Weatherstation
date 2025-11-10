@@ -12,5 +12,6 @@ int getMostSun();
 int getMostSunPin();
 float getMostSunLux();
 void printMostSun();
+void printLux();
 void printLDRValues();
 #endif // UV_HPP
