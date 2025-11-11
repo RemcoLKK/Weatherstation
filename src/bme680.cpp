@@ -54,43 +54,53 @@ void debugI2CScan() {
 }
 
 float getTemperature() {
+  static float lastValue = NAN;
   if (!bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return -999;
+    Serial.println(F("Failed to perform temperature reading :("));
+    return isnan(lastValue) ? -999 : lastValue;
   }
-  return bme.temperature - 4;
+  lastValue = bme.temperature - 4;
+  return lastValue;
 }
 
 float getPressure() {
+  static float lastValue = NAN;
   if (!bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return -999;
+    Serial.println(F("Failed to perform pressure reading :("));
+    return isnan(lastValue) ? -999 : lastValue;
   }
-  return bme.pressure / 100.0;
+  lastValue = bme.pressure / 100.0;
+  return lastValue;
 }
 
 float getHumidity() {
+  static float lastValue = NAN;
   if (!bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return -999;
+    Serial.println(F("Failed to perform humidity reading :("));
+    return isnan(lastValue) ? -999 : lastValue;
   }
-  return bme.humidity;
+  lastValue = bme.humidity;
+  return lastValue;
 }
 
 float getGasResistance() {
+  static float lastValue = NAN;
   if (!bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return -999;
+    Serial.println(F("Failed to perform gas reading :("));
+    return isnan(lastValue) ? -999 : lastValue;
   }
-  return bme.gas_resistance / 1000.0;
+  lastValue = bme.gas_resistance / 1000.0;
+  return lastValue;
 }
 
 float getAltitude() {
+  static float lastValue = NAN;
   if (!bme.performReading()) {
-    Serial.println(F("Failed to perform reading :("));
-    return -999;
+    Serial.println(F("Failed to perform altitude reading :("));
+    return isnan(lastValue) ? -999 : lastValue;
   }
-  return bme.readAltitude(SEALEVELPRESSURE_HPA) + 37;
+  lastValue = bme.readAltitude(SEALEVELPRESSURE_HPA) + 37;
+  return lastValue;
 }
 
 void printTemperature() {

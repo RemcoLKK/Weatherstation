@@ -33,7 +33,7 @@ extern PubSubClient mqtt;
 bool ensureConnected();
 void connectWiFi();
 void connectMQTT();
-void mqttTask(void* pv); // not used
+void startMqttTaskOnCore0();
 void mqttPublish();
 
 #endif // SENDDATA_HPP

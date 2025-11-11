@@ -26,7 +26,7 @@ void connectWiFi() {
   while (WiFi.status() != WL_CONNECTED) {
     netLedUpdate();                      // keep flickering during the wait
     Serial.print(".");
-    delay(120);                          // short so flicker feels responsive
+    delay(120);
   }
 
   Serial.print("\nIP: "); Serial.println(WiFi.localIP());
@@ -41,7 +41,7 @@ void connectMQTT() {
   mqtt.setServer(MQTT_BROKER, MQTT_PORT);
   if (mqtt.connected()) return;
 
-  setNetLed(MQTT_CONNECTING);            // <— BLUE flicker during connect try
+  setNetLed(MQTT_CONNECTING);            // BLUE flicker during connect try
 
   String clientId = "esp32-" + String((uint32_t)ESP.getEfuseMac(), HEX);
   bool ok = (MQTT_USERNAME[0] == '\0')
@@ -50,7 +50,7 @@ void connectMQTT() {
 
   if (ok) {
     Serial.println("MQTT: connected");
-    setNetLed(ONLINE);                   // both should be up now
+    setNetLed(ONLINE);                   //solid GREEN on success
     mqtt.publish(MQTT_GPS, "52.669483, 5.624467"); // publish static GPS coords once
   } else {
     Serial.printf("MQTT: connect failed, rc=%d\n", mqtt.state());
@@ -109,4 +109,29 @@ void mqttPublish() {
     if (ensureConnected()) publishAll();
     nextPublish = now + PUBLISH_PERIOD_MS;
   }
+}
+
+TaskHandle_t mqttTaskHandle = nullptr;
+
+void mqttTask(void *pvParameters) {
+  (void) pvParameters;
+
+  for (;;) {
+    mqttPublish();                         // your existing function
+    vTaskDelay(pdMS_TO_TICKS(50));         // run ~20 times per second
+  }
+}
+
+void startMqttTaskOnCore0() {
+  if (mqttTaskHandle != nullptr) return;   // already running
+
+  xTaskCreatePinnedToCore(
+    mqttTask,              // task function
+    "mqttTask",            // name
+    4096,                  // stack size (tune if needed)
+    nullptr,               // parameter
+    1,                     // priority
+    &mqttTaskHandle,       // task handle
+    0                      // <- CORE 0
+  );
 }

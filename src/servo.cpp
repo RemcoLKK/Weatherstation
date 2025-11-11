@@ -26,20 +26,21 @@ void servoSetup() {
     servoHigh.attach(servoPinHigh, 600, 2700);
     servoHighAttached = true;
 
-    servoLow.write(90);
-    servoHigh.write(90);
+    // servoLow.write(90);
+    // servoHigh.write(90);
 }
 
 void rotateServo() {
     // timing constants
     static const uint32_t RECHECK_INTERVAL_MS = 20000; // 20 s between full checks
-    static const uint32_t SERVO_SETTLE_MS     = 250;   // time to reach 90°
-    static const uint32_t SHADOW_WAIT_MS      = 3000;  // wait after lifting panel
+    static const uint32_t SERVO_SETTLE_MS     = 100;   // time to reach position
+    static const uint32_t SHADOW_WAIT_MS      = 2000;  // wait after lifting panel
 
-    // internal state tracking
+    // states:
     // 0 = idle, waiting for next check
-    // 1 = moved to 90°, waiting a bit before detach
-    // 2 = servo detached, waiting for light to settle, then read LDRs & move
+    // 1 = moved high servo to 90°, waiting to detach
+    // 2 = waiting for shadow to settle, then read LDRs & move to sun
+    // 3 = after moving to sun, wait a bit then detach again
     static uint8_t  state      = 0;
     static uint32_t lastAction = 0;
 
@@ -92,20 +93,37 @@ void rotateServo() {
             } else if (whereBright == 3) { // West
                 pos1 = 0;
                 pos2 = 135;
+            } else {
             }
 
             // reattach before actually moving to sun position
             if (!servoHighAttached) {
                 servoHigh.attach(servoPinHigh, 600, 2700);
+                servoLow.attach(servoPinLow, 600, 2700);
                 servoHighAttached = true;
             }
 
             servoLow.write(pos1);
             servoHigh.write(pos2);
 
-            lastAction = now;  // mark time of completed move
-            state = 0;         // back to idle until next cycle
+            lastAction = now;  // mark time of move
+            state = 3;         // go to "final settle then detach"
+        }
+        break;
+
+      case 3: // --- wait a bit so move finishes, then detach top servo ---
+        if (now - lastAction >= SERVO_SETTLE_MS) {
+            if (servoHighAttached) {
+                servoHigh.detach();
+                servoLow.detach();
+                servoHighAttached = false;
+            }
+
+            // back to idle, wait for the next full cycle
+            lastAction = now;
+            state = 0;
         }
         break;
     }
 }
+

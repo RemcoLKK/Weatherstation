@@ -21,16 +21,17 @@ void setup() {
   bme680Setup();
   rgbSetup();   
   buttonSetup();             
-  // setNetLed(LED_OFF);
+  setNetLed(LED_OFF);
   connectWiFi();
   connectMQTT();
+  startMqttTaskOnCore0();
 }
 
 void loop() {
   updateLDRs(); 
-  // rotateServo();
+  rotateServo();
   ensureConnected();
-  mqttPublish();
+  // mqttPublish();
   handleButtons();
 
 switch (currentScreen) {
